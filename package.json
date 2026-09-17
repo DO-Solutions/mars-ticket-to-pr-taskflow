@@ -1,0 +1,14 @@
+{
+  "name": "taskflow-api",
+  "version": "1.0.0",
+  "description": "TaskFlow — a small task-tracking API. Target repo for the MARS ticket-to-PR demo.",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": { "express": "^4.19.2" },
+  "devDependencies": { "supertest": "^7.0.0", "vitest": "^2.1.8" }
+}
