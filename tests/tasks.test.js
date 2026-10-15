@@ -41,6 +41,14 @@ describe('GET /tasks', () => {
     expect(res.body.tasks.every((t) => t.status === 'done')).toBe(true);
   });
 
+  // TF-105 — un-skip this test and make it pass (same root cause as TF-101).
+  it('filters by a single status (TF-105)', async () => {
+    const res = await request(app).get('/tasks?status=in_progress');
+    expect(res.status).toBe(200);
+    expect(res.body.count).toBe(1);
+    expect(res.body.tasks.every((t) => t.status === 'in_progress')).toBe(true);
+  });
+
   // TF-102 — un-skip this test and make it pass.
   it.skip('sorts by due date with undated tasks last', async () => {
     const res = await request(app).get('/tasks?sort=dueDate');
