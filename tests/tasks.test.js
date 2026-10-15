@@ -47,6 +47,25 @@ describe('GET /tasks', () => {
     const dates = res.body.tasks.map((t) => t.dueDate);
     expect(dates).toEqual(['2026-01-20', '2026-02-01', '2026-02-28', '2026-03-15', null]);
   });
+
+  // TF-103 — limit/offset pagination
+  it('respects limit and offset query params', async () => {
+    const res = await request(app).get('/tasks?limit=2&offset=1');
+    expect(res.status).toBe(200);
+    expect(res.body.count).toBe(2);
+    expect(res.body.total).toBe(5);
+    expect(res.body.tasks).toHaveLength(2);
+  });
+
+  it('returns 400 for negative limit', async () => {
+    const res = await request(app).get('/tasks?limit=-1');
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 400 for non-numeric limit', async () => {
+    const res = await request(app).get('/tasks?limit=abc');
+    expect(res.status).toBe(400);
+  });
 });
 
 describe('GET /tasks/:id', () => {
