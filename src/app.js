@@ -7,14 +7,15 @@ export function createApp() {
 
   app.get('/health', (_req, res) => res.json({ ok: true }));
 
-  // GET /tasks — list tasks, optionally filtered by status and sorted by due date.
+  // GET /tasks — list tasks, optionally filtered by status, sorted by due date,
+  //   and paginated with limit/offset.
   //   ?status=todo|in_progress|done
   //   ?sort=dueDate
+  //   ?limit=N&offset=N
   app.get('/tasks', (req, res) => {
     const { status, sort } = req.query;
     let result = store.all();
 
-    // Support was extended to accept several statuses at once (?status=todo&status=done).
     if (Array.isArray(status)) {
       result = result.filter((t) => t.status === status);
     }
@@ -23,7 +24,25 @@ export function createApp() {
       result = result.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
     }
 
-    res.json({ tasks: result, count: result.length });
+    const total = result.length;
+
+    if (req.query.limit !== undefined || req.query.offset !== undefined) {
+      const limit = parseInt(req.query.limit ?? '', 10);
+      const offset = parseInt(req.query.offset ?? '0', 10);
+
+      if (req.query.limit !== undefined && (isNaN(limit) || limit < 0)) {
+        return res.status(400).json({ error: 'limit must be a non-negative integer' });
+      }
+      if (isNaN(offset) || offset < 0) {
+        return res.status(400).json({ error: 'offset must be a non-negative integer' });
+      }
+
+      const start = offset;
+      const end = limit !== undefined && !isNaN(limit) ? start + limit : undefined;
+      result = result.slice(start, end);
+    }
+
+    res.json({ tasks: result, count: result.length, total });
   });
 
   app.get('/tasks/:id', (req, res) => {
