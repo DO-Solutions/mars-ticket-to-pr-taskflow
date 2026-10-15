@@ -34,6 +34,7 @@ export function createApp() {
 
   app.post('/tasks', (req, res) => {
     const { title, status = 'todo', dueDate = null } = req.body ?? {};
+    if (!title || !title.trim()) return res.status(400).json({ error: 'title is required' });
     const task = store.create({ title, status, dueDate });
     res.status(201).json(task);
   });
