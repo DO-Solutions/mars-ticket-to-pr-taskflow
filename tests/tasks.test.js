@@ -41,6 +41,33 @@ describe('GET /tasks', () => {
     expect(res.body.tasks.every((t) => t.status === 'done')).toBe(true);
   });
 
+  // TF-103 — un-skip this test and make it pass.
+  it('paginates with limit and offset and reports total', async () => {
+    const res = await request(app).get('/tasks?limit=2&offset=1');
+    expect(res.status).toBe(200);
+    expect(res.body.count).toBe(2);
+    expect(res.body.total).toBe(5);
+    expect(res.body.tasks).toHaveLength(2);
+  });
+
+  // TF-103 — un-skip this test and make it pass.
+  it('rejects negative limit', async () => {
+    const res = await request(app).get('/tasks?limit=-1');
+    expect(res.status).toBe(400);
+  });
+
+  // TF-103 — un-skip this test and make it pass.
+  it('rejects negative offset', async () => {
+    const res = await request(app).get('/tasks?offset=-5');
+    expect(res.status).toBe(400);
+  });
+
+  // TF-103 — un-skip this test and make it pass.
+  it('rejects non-numeric limit', async () => {
+    const res = await request(app).get('/tasks?limit=abc');
+    expect(res.status).toBe(400);
+  });
+
   // TF-102 — un-skip this test and make it pass.
   it.skip('sorts by due date with undated tasks last', async () => {
     const res = await request(app).get('/tasks?sort=dueDate');
