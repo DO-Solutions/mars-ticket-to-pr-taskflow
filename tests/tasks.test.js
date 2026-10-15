@@ -47,6 +47,47 @@ describe('GET /tasks', () => {
     const dates = res.body.tasks.map((t) => t.dueDate);
     expect(dates).toEqual(['2026-01-20', '2026-02-01', '2026-02-28', '2026-03-15', null]);
   });
+
+  // TF-103 — pagination with limit and offset.
+  it('paginates with limit and offset', async () => {
+    const res = await request(app).get('/tasks?limit=2&offset=1');
+    expect(res.status).toBe(200);
+    expect(res.body.count).toBe(2);
+    expect(res.body.total).toBe(5);
+    expect(res.body.tasks).toHaveLength(2);
+    // offset=1 skips the first task (id=1)
+    expect(res.body.tasks[0].id).toBe(2);
+  });
+
+  it('returns 400 for negative limit', async () => {
+    const res = await request(app).get('/tasks?limit=-1');
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 400 for non-numeric limit', async () => {
+    const res = await request(app).get('/tasks?limit=abc');
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 400 for negative offset', async () => {
+    const res = await request(app).get('/tasks?offset=-5');
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 400 for non-numeric offset', async () => {
+    const res = await request(app).get('/tasks?offset=abc');
+    expect(res.status).toBe(400);
+  });
+
+  it('limit and offset work together for subsets', async () => {
+    const res = await request(app).get('/tasks?limit=3&offset=2');
+    expect(res.status).toBe(200);
+    expect(res.body.count).toBe(3);
+    expect(res.body.total).toBe(5);
+    expect(res.body.tasks).toHaveLength(3);
+    // offset=2 skips first two tasks, so we get ids 3,4,5
+    expect(res.body.tasks.map((t) => t.id)).toEqual([3, 4, 5]);
+  });
 });
 
 describe('GET /tasks/:id', () => {
