@@ -33,6 +33,61 @@ describe('GET /tasks', () => {
     });
   });
 
+  // TF-103 — add limit/offset pagination test.
+  describe('pagination', () => {
+    it('limits the number of tasks returned', async () => {
+      const res = await request(app).get('/tasks?limit=2');
+      expect(res.status).toBe(200);
+      expect(res.body.tasks).toHaveLength(2);
+      expect(res.body.count).toBe(2);
+      expect(res.body.total).toBe(5);
+    });
+
+    it('offsets past the first N tasks', async () => {
+      const res = await request(app).get('/tasks?offset=2');
+      expect(res.status).toBe(200);
+      expect(res.body.tasks).toHaveLength(3);
+      expect(res.body.count).toBe(3);
+      expect(res.body.total).toBe(5);
+    });
+
+    it('combines limit and offset', async () => {
+      const res = await request(app).get('/tasks?limit=2&offset=1');
+      expect(res.status).toBe(200);
+      expect(res.body.tasks).toHaveLength(2);
+      expect(res.body.count).toBe(2);
+      expect(res.body.total).toBe(5);
+    });
+
+    it('reports full set when no pagination params are given', async () => {
+      const res = await request(app).get('/tasks');
+      expect(res.status).toBe(200);
+      expect(res.body.tasks).toHaveLength(5);
+      expect(res.body.count).toBe(5);
+      expect(res.body.total).toBe(5);
+    });
+
+    it('returns 400 for a negative limit', async () => {
+      const res = await request(app).get('/tasks?limit=-1');
+      expect(res.status).toBe(400);
+    });
+
+    it('returns 400 for a non-numeric limit', async () => {
+      const res = await request(app).get('/tasks?limit=abc');
+      expect(res.status).toBe(400);
+    });
+
+    it('returns 400 for a negative offset', async () => {
+      const res = await request(app).get('/tasks?offset=-5');
+      expect(res.status).toBe(400);
+    });
+
+    it('returns 400 for a non-numeric offset', async () => {
+      const res = await request(app).get('/tasks?offset=xyz');
+      expect(res.status).toBe(400);
+    });
+  });
+
   // TF-101 — un-skip this test and make it pass.
   it.skip('filters by a single status', async () => {
     const res = await request(app).get('/tasks?status=done');
