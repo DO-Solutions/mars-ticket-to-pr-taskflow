@@ -34,11 +34,19 @@ describe('GET /tasks', () => {
   });
 
   // TF-101 — un-skip this test and make it pass.
-  it.skip('filters by a single status', async () => {
+  it('filters by a single status', async () => {
     const res = await request(app).get('/tasks?status=done');
     expect(res.status).toBe(200);
     expect(res.body.count).toBe(2);
     expect(res.body.tasks.every((t) => t.status === 'done')).toBe(true);
+  });
+
+  // TF-105 — multi-status filter and the filter-array expression were broken.
+  it('filters by multiple statuses', async () => {
+    const res = await request(app).get('/tasks?status=todo&status=done');
+    expect(res.status).toBe(200);
+    expect(res.body.count).toBe(4);
+    expect(res.body.tasks.every((t) => t.status === 'todo' || t.status === 'done')).toBe(true);
   });
 
   // TF-102 — un-skip this test and make it pass.
