@@ -83,3 +83,45 @@ describe('POST /tasks', () => {
     expect(res.status).toBe(400);
   });
 });
+
+describe('GET /tasks pagination', () => {
+  // TF-103 — limit/offset pagination
+  it('caps returned tasks with ?limit', async () => {
+    const res = await request(app).get('/tasks?limit=2');
+    expect(res.status).toBe(200);
+    expect(res.body.count).toBe(2);
+    expect(res.body.total).toBe(5);
+    expect(res.body.tasks).toHaveLength(2);
+  });
+
+  it('skips tasks with ?offset', async () => {
+    const res = await request(app).get('/tasks?offset=2');
+    expect(res.status).toBe(200);
+    expect(res.body.count).toBe(3);
+    expect(res.body.total).toBe(5);
+    expect(res.body.tasks).toHaveLength(3);
+  });
+
+  it('combines limit and offset', async () => {
+    const res = await request(app).get('/tasks?limit=2&offset=1');
+    expect(res.status).toBe(200);
+    expect(res.body.count).toBe(2);
+    expect(res.body.total).toBe(5);
+    expect(res.body.tasks).toHaveLength(2);
+  });
+
+  it('returns 400 for negative limit', async () => {
+    const res = await request(app).get('/tasks?limit=-1');
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 400 for negative offset', async () => {
+    const res = await request(app).get('/tasks?offset=-5');
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 400 for non-numeric limit', async () => {
+    const res = await request(app).get('/tasks?limit=abc');
+    expect(res.status).toBe(400);
+  });
+});
