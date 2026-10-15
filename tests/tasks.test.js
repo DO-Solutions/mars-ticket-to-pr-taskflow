@@ -47,6 +47,50 @@ describe('GET /tasks', () => {
     const dates = res.body.tasks.map((t) => t.dueDate);
     expect(dates).toEqual(['2026-01-20', '2026-02-01', '2026-02-28', '2026-03-15', null]);
   });
+
+  // TF-103
+  it('respects limit and offset, reports count and total', async () => {
+    const res = await request(app).get('/tasks?limit=2&offset=1');
+    expect(res.status).toBe(200);
+    expect(res.body.count).toBe(2);
+    expect(res.body.total).toBe(5);
+    expect(res.body.tasks).toHaveLength(2);
+  });
+
+  it('limit alone caps the result', async () => {
+    const res = await request(app).get('/tasks?limit=3');
+    expect(res.status).toBe(200);
+    expect(res.body.count).toBe(3);
+    expect(res.body.total).toBe(5);
+  });
+
+  it('offset alone skips that many first', async () => {
+    const res = await request(app).get('/tasks?offset=2');
+    expect(res.status).toBe(200);
+    expect(res.body.count).toBe(3);
+    expect(res.body.total).toBe(5);
+    expect(res.body.tasks).toHaveLength(3);
+  });
+
+  it('rejects negative limit with 400', async () => {
+    const res = await request(app).get('/tasks?limit=-1');
+    expect(res.status).toBe(400);
+  });
+
+  it('rejects negative offset with 400', async () => {
+    const res = await request(app).get('/tasks?offset=-5');
+    expect(res.status).toBe(400);
+  });
+
+  it('rejects non-numeric limit with 400', async () => {
+    const res = await request(app).get('/tasks?limit=abc');
+    expect(res.status).toBe(400);
+  });
+
+  it('rejects non-numeric offset with 400', async () => {
+    const res = await request(app).get('/tasks?offset=xyz');
+    expect(res.status).toBe(400);
+  });
 });
 
 describe('GET /tasks/:id', () => {
