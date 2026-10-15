@@ -34,7 +34,7 @@ describe('GET /tasks', () => {
   });
 
   // TF-101 — un-skip this test and make it pass.
-  it.skip('filters by a single status', async () => {
+  it('filters by a single status', async () => {
     const res = await request(app).get('/tasks?status=done');
     expect(res.status).toBe(200);
     expect(res.body.count).toBe(2);
@@ -46,6 +46,14 @@ describe('GET /tasks', () => {
     const res = await request(app).get('/tasks?sort=dueDate');
     const dates = res.body.tasks.map((t) => t.dueDate);
     expect(dates).toEqual(['2026-01-20', '2026-02-01', '2026-02-28', '2026-03-15', null]);
+  });
+
+  // TF-105 — status filter should work for both single and multi-value queries.
+  it('filters by multiple statuses', async () => {
+    const res = await request(app).get('/tasks?status=todo&status=in_progress');
+    expect(res.status).toBe(200);
+    expect(res.body.count).toBe(3);
+    expect(res.body.tasks.every((t) => t.status === 'todo' || t.status === 'in_progress')).toBe(true);
   });
 });
 
