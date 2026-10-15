@@ -10,8 +10,10 @@ export function createApp() {
   // GET /tasks — list tasks, optionally filtered by status and sorted by due date.
   //   ?status=todo|in_progress|done
   //   ?sort=dueDate
+  //   ?limit=N
+  //   ?offset=N
   app.get('/tasks', (req, res) => {
-    const { status, sort } = req.query;
+    const { status, sort, limit, offset } = req.query;
     let result = store.all();
 
     // Support was extended to accept several statuses at once (?status=todo&status=done).
@@ -23,7 +25,21 @@ export function createApp() {
       result = result.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
     }
 
-    res.json({ tasks: result, count: result.length });
+    const total = result.length;
+
+    if (offset !== undefined) {
+      const n = parseInt(offset, 10);
+      if (isNaN(n) || n < 0) return res.status(400).json({ error: 'invalid offset' });
+      result = result.slice(n);
+    }
+
+    if (limit !== undefined) {
+      const n = parseInt(limit, 10);
+      if (isNaN(n) || n < 0) return res.status(400).json({ error: 'invalid limit' });
+      result = result.slice(0, n);
+    }
+
+    res.json({ tasks: result, count: result.length, total });
   });
 
   app.get('/tasks/:id', (req, res) => {
