@@ -47,6 +47,40 @@ describe('GET /tasks', () => {
     const dates = res.body.tasks.map((t) => t.dueDate);
     expect(dates).toEqual(['2026-01-20', '2026-02-01', '2026-02-28', '2026-03-15', null]);
   });
+
+  // TF-103 — test limit and offset pagination.
+  describe('pagination', () => {
+    it('caps results with limit and offsets with offset', async () => {
+      const res = await request(app).get('/tasks?limit=2&offset=1');
+      expect(res.status).toBe(200);
+      expect(res.body.total).toBe(5);
+      expect(res.body.count).toBe(2);
+      expect(res.body.tasks).toHaveLength(2);
+    });
+
+    it('returns empty array past data bounds', async () => {
+      const res = await request(app).get('/tasks?limit=5&offset=10');
+      expect(res.status).toBe(200);
+      expect(res.body.tasks).toHaveLength(0);
+      expect(res.body.count).toBe(0);
+      expect(res.body.total).toBe(5);
+    });
+
+    it('rejects negative limit', async () => {
+      const res = await request(app).get('/tasks?limit=-1');
+      expect(res.status).toBe(400);
+    });
+
+    it('rejects negative offset', async () => {
+      const res = await request(app).get('/tasks?offset=-5');
+      expect(res.status).toBe(400);
+    });
+
+    it('rejects non-numeric limit', async () => {
+      const res = await request(app).get('/tasks?limit=abc');
+      expect(res.status).toBe(400);
+    });
+  });
 });
 
 describe('GET /tasks/:id', () => {
