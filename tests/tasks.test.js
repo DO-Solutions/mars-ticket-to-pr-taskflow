@@ -33,8 +33,7 @@ describe('GET /tasks', () => {
     });
   });
 
-  // TF-101 — un-skip this test and make it pass.
-  it.skip('filters by a single status', async () => {
+  it('filters by a single status', async () => {
     const res = await request(app).get('/tasks?status=done');
     expect(res.status).toBe(200);
     expect(res.body.count).toBe(2);
