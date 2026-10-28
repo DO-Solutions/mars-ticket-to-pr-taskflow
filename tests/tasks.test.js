@@ -71,14 +71,14 @@ describe('POST /tasks', () => {
   });
 
   // TF-104 — un-skip this test and make it pass.
-  it.skip('rejects a task with no title', async () => {
+  it('rejects a task with no title', async () => {
     const res = await request(app).post('/tasks').send({ status: 'todo' });
     expect(res.status).toBe(400);
     expect(res.body.error).toMatch(/title/i);
   });
 
   // TF-104 — un-skip this test and make it pass.
-  it.skip('rejects a blank title', async () => {
+  it('rejects a blank title', async () => {
     const res = await request(app).post('/tasks').send({ title: '   ' });
     expect(res.status).toBe(400);
   });
