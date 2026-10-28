@@ -11,7 +11,17 @@ export function createApp() {
   //   ?status=todo|in_progress|done
   //   ?sort=dueDate
   app.get('/tasks', (req, res) => {
-    const { status, sort } = req.query;
+    const { status, sort, limit, offset } = req.query;
+
+    if (limit !== undefined) {
+      const n = Number(limit);
+      if (!Number.isInteger(n) || n < 0) return res.status(400).json({ error: 'invalid limit' });
+    }
+    if (offset !== undefined) {
+      const n = Number(offset);
+      if (!Number.isInteger(n) || n < 0) return res.status(400).json({ error: 'invalid offset' });
+    }
+
     let result = store.all();
 
     // Support was extended to accept several statuses at once (?status=todo&status=done).
@@ -23,7 +33,12 @@ export function createApp() {
       result = result.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
     }
 
-    res.json({ tasks: result, count: result.length });
+    const total = result.length;
+    const off = offset !== undefined ? Number(offset) : 0;
+    const lim = limit !== undefined ? Number(limit) : result.length;
+    const paged = result.slice(off, off + lim);
+
+    res.json({ tasks: paged, count: paged.length, total });
   });
 
   app.get('/tasks/:id', (req, res) => {
