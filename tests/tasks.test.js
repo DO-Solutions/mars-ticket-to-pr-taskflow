@@ -47,6 +47,55 @@ describe('GET /tasks', () => {
     const dates = res.body.tasks.map((t) => t.dueDate);
     expect(dates).toEqual(['2026-01-20', '2026-02-01', '2026-02-28', '2026-03-15', null]);
   });
+
+  // TF-103 — limit and offset pagination.
+  describe('pagination', () => {
+    it('limits the number of tasks returned', async () => {
+      const res = await request(app).get('/tasks?limit=2');
+      expect(res.status).toBe(200);
+      expect(res.body.tasks).toHaveLength(2);
+      expect(res.body.count).toBe(2);
+      expect(res.body.total).toBe(5);
+    });
+
+    it('offsets past the first N tasks', async () => {
+      const res = await request(app).get('/tasks?offset=2&limit=3');
+      expect(res.status).toBe(200);
+      expect(res.body.tasks).toHaveLength(3);
+      expect(res.body.count).toBe(3);
+      expect(res.body.total).toBe(5);
+      // The first task in the full list has id 1; offset 2 should skip ids 1 and 2.
+      expect(res.body.tasks[0].id).toBe(3);
+    });
+
+    it('returns an empty array when offset exceeds available tasks', async () => {
+      const res = await request(app).get('/tasks?offset=50');
+      expect(res.status).toBe(200);
+      expect(res.body.tasks).toHaveLength(0);
+      expect(res.body.count).toBe(0);
+      expect(res.body.total).toBe(5);
+    });
+
+    it('rejects a negative limit with 400', async () => {
+      const res = await request(app).get('/tasks?limit=-1');
+      expect(res.status).toBe(400);
+    });
+
+    it('rejects a negative offset with 400', async () => {
+      const res = await request(app).get('/tasks?offset=-5');
+      expect(res.status).toBe(400);
+    });
+
+    it('rejects a non-numeric limit with 400', async () => {
+      const res = await request(app).get('/tasks?limit=abc');
+      expect(res.status).toBe(400);
+    });
+
+    it('rejects a non-numeric offset with 400', async () => {
+      const res = await request(app).get('/tasks?offset=xyz');
+      expect(res.status).toBe(400);
+    });
+  });
 });
 
 describe('GET /tasks/:id', () => {
