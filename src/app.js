@@ -10,8 +10,21 @@ export function createApp() {
   // GET /tasks — list tasks, optionally filtered by status and sorted by due date.
   //   ?status=todo|in_progress|done
   //   ?sort=dueDate
+  //   ?limit=N  caps the number of tasks returned
+  //   ?offset=N skips that many tasks first
   app.get('/tasks', (req, res) => {
-    const { status, sort } = req.query;
+    const { status, sort, limit, offset } = req.query;
+
+    const parsedLimit = limit !== undefined ? Number(limit) : undefined;
+    const parsedOffset = offset !== undefined ? Number(offset) : undefined;
+
+    if (
+      (parsedLimit !== undefined && (!Number.isInteger(parsedLimit) || parsedLimit < 0)) ||
+      (parsedOffset !== undefined && (!Number.isInteger(parsedOffset) || parsedOffset < 0))
+    ) {
+      return res.status(400).json({ error: 'limit and offset must be non-negative integers' });
+    }
+
     let result = store.all();
 
     // Support was extended to accept several statuses at once (?status=todo&status=done).
@@ -23,7 +36,16 @@ export function createApp() {
       result = result.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
     }
 
-    res.json({ tasks: result, count: result.length });
+    const total = result.length;
+
+    if (parsedOffset !== undefined) {
+      result = result.slice(parsedOffset);
+    }
+    if (parsedLimit !== undefined) {
+      result = result.slice(0, parsedLimit);
+    }
+
+    res.json({ tasks: result, count: result.length, total });
   });
 
   app.get('/tasks/:id', (req, res) => {
