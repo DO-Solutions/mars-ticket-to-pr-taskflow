@@ -7,14 +7,15 @@ export function createApp() {
 
   app.get('/health', (_req, res) => res.json({ ok: true }));
 
-  // GET /tasks — list tasks, optionally filtered by status and sorted by due date.
+  // GET /tasks — list tasks, optionally filtered by status, sorted by due date, and
+  //   paginated with limit/offset.
   //   ?status=todo|in_progress|done
   //   ?sort=dueDate
+  //   ?limit=N  ?offset=N
   app.get('/tasks', (req, res) => {
     const { status, sort } = req.query;
     let result = store.all();
 
-    // Support was extended to accept several statuses at once (?status=todo&status=done).
     if (Array.isArray(status)) {
       result = result.filter((t) => t.status === status);
     }
@@ -23,7 +24,34 @@ export function createApp() {
       result = result.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
     }
 
-    res.json({ tasks: result, count: result.length });
+    const total = result.length;
+
+    const limitRaw = req.query.limit;
+    const offsetRaw = req.query.offset;
+
+    if (limitRaw !== undefined) {
+      const limit = Number(limitRaw);
+      if (!Number.isInteger(limit) || limit < 0) {
+        return res.status(400).json({ error: 'limit must be a non-negative integer' });
+      }
+      if (offsetRaw !== undefined) {
+        const offset = Number(offsetRaw);
+        if (!Number.isInteger(offset) || offset < 0) {
+          return res.status(400).json({ error: 'offset must be a non-negative integer' });
+        }
+        result = result.slice(offset, offset + limit);
+      } else {
+        result = result.slice(0, limit);
+      }
+    } else if (offsetRaw !== undefined) {
+      const offset = Number(offsetRaw);
+      if (!Number.isInteger(offset) || offset < 0) {
+        return res.status(400).json({ error: 'offset must be a non-negative integer' });
+      }
+      result = result.slice(offset);
+    }
+
+    res.json({ tasks: result, count: result.length, total });
   });
 
   app.get('/tasks/:id', (req, res) => {
