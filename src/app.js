@@ -14,9 +14,9 @@ export function createApp() {
     const { status, sort } = req.query;
     let result = store.all();
 
-    // Support was extended to accept several statuses at once (?status=todo&status=done).
-    if (Array.isArray(status)) {
-      result = result.filter((t) => t.status === status);
+    if (status) {
+      const statii = Array.isArray(status) ? status : [status];
+      result = result.filter((t) => statii.includes(t.status));
     }
 
     if (sort === 'dueDate') {
