@@ -20,7 +20,12 @@ export function createApp() {
     }
 
     if (sort === 'dueDate') {
-      result = result.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+      result = result.sort((a, b) => {
+        if (a.dueDate === null && b.dueDate === null) return 0;
+        if (a.dueDate === null) return 1;
+        if (b.dueDate === null) return -1;
+        return new Date(a.dueDate) - new Date(b.dueDate);
+      });
     }
 
     res.json({ tasks: result, count: result.length });
