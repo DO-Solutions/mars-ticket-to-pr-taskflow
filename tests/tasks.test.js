@@ -41,8 +41,8 @@ describe('GET /tasks', () => {
     expect(res.body.tasks.every((t) => t.status === 'done')).toBe(true);
   });
 
-  // TF-102 — un-skip this test and make it pass.
-  it.skip('sorts by due date with undated tasks last', async () => {
+  // TF-102
+  it('sorts by due date with undated tasks last', async () => {
     const res = await request(app).get('/tasks?sort=dueDate');
     const dates = res.body.tasks.map((t) => t.dueDate);
     expect(dates).toEqual(['2026-01-20', '2026-02-01', '2026-02-28', '2026-03-15', null]);
