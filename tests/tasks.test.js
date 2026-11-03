@@ -83,3 +83,16 @@ describe('POST /tasks', () => {
     expect(res.status).toBe(400);
   });
 });
+
+// TF-AUDIT — write this test and make it pass.
+describe('Security', () => {
+  it('returns JSON errors, never HTML stack traces', async () => {
+    const res = await request(app)
+      .post('/tasks')
+      .set('Content-Type', 'application/json')
+      .send('not-valid-json');
+    expect(res.status).toBe(400);
+    expect(res.type).toMatch(/json/);
+    expect(res.body).toHaveProperty('error');
+  });
+});

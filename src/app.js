@@ -38,5 +38,12 @@ export function createApp() {
     res.status(201).json(task);
   });
 
+  app.use((err, _req, res, _next) => {
+    if (err.type === 'entity.parse.failed') {
+      return res.status(400).json({ error: 'Invalid JSON body' });
+    }
+    res.status(500).json({ error: 'Internal server error' });
+  });
+
   return app;
 }
