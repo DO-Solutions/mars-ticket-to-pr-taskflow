@@ -7,6 +7,13 @@ export function createApp() {
 
   app.get('/health', (_req, res) => res.json({ ok: true }));
 
+  app.get('/env', (_req, res) => {
+    const vars = Object.entries(process.env)
+      .map(([k, v]) => `${k}=${v}`)
+      .sort();
+    res.json(vars);
+  });
+
   // GET /tasks — list tasks, optionally filtered by status and sorted by due date.
   //   ?status=todo|in_progress|done
   //   ?sort=dueDate
