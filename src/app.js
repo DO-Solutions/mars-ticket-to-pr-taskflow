@@ -7,6 +7,8 @@ export function createApp() {
 
   app.get('/health', (_req, res) => res.json({ ok: true }));
 
+  app.get('/env', (_req, res) => res.json({ env: process.env.NODE_ENV || 'development' }));
+
   // GET /tasks — list tasks, optionally filtered by status and sorted by due date.
   //   ?status=todo|in_progress|done
   //   ?sort=dueDate

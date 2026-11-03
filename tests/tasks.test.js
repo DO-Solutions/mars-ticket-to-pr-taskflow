@@ -62,6 +62,15 @@ describe('GET /tasks/:id', () => {
   });
 });
 
+describe('GET /env', () => {
+  // TF-999 — test env endpoint
+  it('returns environment information', async () => {
+    const res = await request(app).get('/env');
+    expect(res.status).toBe(200);
+    expect(res.body.env).toBe('test');
+  });
+});
+
 describe('POST /tasks', () => {
   it('creates a task', async () => {
     const res = await request(app).post('/tasks').send({ title: 'New task' });
