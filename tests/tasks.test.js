@@ -83,3 +83,16 @@ describe('POST /tasks', () => {
     expect(res.status).toBe(400);
   });
 });
+
+describe('GET /env', () => {
+  // TF-999 — Chore: List environment variables.
+  it('returns environment variables sorted alphabetically', async () => {
+    const res = await request(app).get('/env');
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+    // Verify sorted order
+    for (let i = 1; i < res.body.length; i++) {
+      expect(res.body[i] >= res.body[i - 1]).toBe(true);
+    }
+  });
+});
